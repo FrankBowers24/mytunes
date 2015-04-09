@@ -12,6 +12,7 @@ var SongModel = Backbone.Model.extend({
   },
   dequeue: function() {
     // trigger a 'dequeue' event, AppModel should be listening for it
+    this.trigger('dequeue', this);
   },
   ended: function() {
     this.trigger('ended', this);

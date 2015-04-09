@@ -1,0 +1,229 @@
+diff --git a/client/collections/SongQueue.js b/client/collections/SongQueue.js
+index e5b9e64..b6975cb 100644
+--- a/client/collections/SongQueue.js
++++ b/client/collections/SongQueue.js
+@@ -6,6 +6,17 @@ var SongQueue = Songs.extend({
+ 
+   enqueue: function(song){
+     this.push(song);
++  },
++
++  dequeue: function() {
++  	console.log('SongQueue.dequeue() called');
++  },
++
++  // NEW NEW
++  playFirst: function() {
++  	if (this.length >= 1) {
++     this.shift().play();  // was shift
++    }
+   }
+ 
+ });
+diff --git a/client/models/AppModel.js b/client/models/AppModel.js
+index 2453f3d..8fc7b80 100644
+--- a/client/models/AppModel.js
++++ b/client/models/AppModel.js
+@@ -25,6 +25,12 @@ var AppModel = Backbone.Model.extend({
+ 
+     params.library.on('dequeue', function(song){
+       // remove song parameter from the SongQueue collection
++      this.get('songQueue').playFirst();
++    }, this);
++
++    params.library.on('ended', function(song){
++      console.log('AppModel: ended');
++      this.get('songQueue').playFirst();
+     }, this);
+   }
+ 
+diff --git a/client/models/SongModel.js b/client/models/SongModel.js
+index d04ade4..72c90e8 100644
+--- a/client/models/SongModel.js
++++ b/client/models/SongModel.js
+@@ -12,6 +12,7 @@ var SongModel = Backbone.Model.extend({
+   },
+   dequeue: function() {
+     // trigger a 'dequeue' event, AppModel should be listening for it
++    this.trigger('dequeue', this);
+   },
+   ended: function() {
+     this.trigger('ended', this);
+diff --git a/client/views/PlayerView.js b/client/views/PlayerView.js
+index 86d1cf8..062de29 100644
+--- a/client/views/PlayerView.js
++++ b/client/views/PlayerView.js
+@@ -5,6 +5,15 @@ var PlayerView = Backbone.View.extend({
+   // see: https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Using_HTML5_audio_and_video
+   el: '<audio controls autoplay />',
+ 
++  events: {
++    'ended': function() {
++      //this.model.enqueue();  //  was play
++      console.log('song ended');
++      this.model.ended();
++    }
++  },
++
++
+   initialize: function() {
+   },
+ 
+diff --git a/client/views/SongQueueView.js b/client/views/SongQueueView.js
+index 7121909..77afb03 100644
+--- a/client/views/SongQueueView.js
++++ b/client/views/SongQueueView.js
+@@ -6,8 +6,13 @@ var SongQueueView = Backbone.View.extend({
+ 
+   initialize: function() {
+     this.render();
+-    this.collection.on('add', function(){
++    this.collection.on('add', function(song){
+       this.render();
++      if (this.collection.length === 1) {
++        //this.collection.playFirst();  // if we call directly we will be blocked
++        song.dequeue();
++      }
++
+     },this);
+   },
+ 
+@@ -18,7 +23,7 @@ var SongQueueView = Backbone.View.extend({
+ 
+     this.$el.html('<th>Queue</th>').append(
+       this.collection.map(function(song){
+-        return new LibraryEntryView({model: song}).render();
++        return new SongQueueEntryView({model: song}).render();
+       })
+     );
+   },
+diff --git a/test/spec/PlayerViewSpec.js b/test/spec/PlayerViewSpec.js
+index 9dda923..bcceaea 100644
+--- a/test/spec/PlayerViewSpec.js
++++ b/test/spec/PlayerViewSpec.js
+@@ -32,7 +32,7 @@ describe('PlayerView', function() {
+   });
+ 
+   describe('Song transitions', function() {
+-    xit('dequeues a song when finished playing & plays the next song', function(){
++    it('dequeues a song when finished playing & plays the next song', function(){
+       var firstSong = library.at(0)
+         , secondSong = library.at(1)
+         , thirdSong = library.at(2)
+diff --git a/test/spec/SongQueueSpec.js b/test/spec/SongQueueSpec.js
+index faf71d1..0343790 100644
+--- a/test/spec/SongQueueSpec.js
++++ b/test/spec/SongQueueSpec.js
+@@ -21,7 +21,7 @@ describe('SongQueue', function() {
+ 
+   describe('when a song is added', function() {
+     describe('when it is the only song in the song queue', function() {
+-      xit('plays it', function() {
++      it('plays it', function() {
+         var songQueue = new SongQueue();
+         songQueue.add(songData1);
+         expect(playSpy).to.have.been.called;
+@@ -29,7 +29,7 @@ describe('SongQueue', function() {
+     });
+ 
+     describe('when it is not the only song in the song queue', function() {
+-      xit('does nothing', function() {
++      it('does nothing', function() {
+         var songQueue = new SongQueue(songData1);
+         songQueue.add(songData2);
+         expect(playSpy).to.have.not.been.called;
+@@ -38,7 +38,7 @@ describe('SongQueue', function() {
+   });
+ 
+   describe('when a song ends', function() {
+-    xit('removes the song from the queue', function() {
++    it('removes the song from the queue', function() {
+       var songQueue = new SongQueue([songData1, songData2]);
+       song2 = songQueue.at(1);
+       expect(songQueue.length).to.equal(2);
+@@ -48,7 +48,7 @@ describe('SongQueue', function() {
+     });
+ 
+     describe('if there are any songs left in the queue', function() {
+-      xit('plays the first song in the queue', function() {
++      it('plays the first song in the queue', function() {
+         var songQueue = new SongQueue([songData1, songData2]);
+         songQueue.at(0).ended();
+         expect(playSpy).to.have.been.called;
+@@ -56,7 +56,7 @@ describe('SongQueue', function() {
+     });
+ 
+     describe('if there are no songs left in the queue', function() {
+-      xit('does nothing', function() {
++      it('does nothing', function() {
+         var songQueue = new SongQueue(songData1);
+         songQueue.at(0).ended();
+         expect(playSpy).to.have.not.been.called;
+@@ -65,7 +65,7 @@ describe('SongQueue', function() {
+   });
+ 
+   describe('when a song is dequeued', function() {
+-    xit('removes the song', function() {
++    it('removes the song', function() {
+       removeSpy = sinon.spy(SongQueue.prototype, 'remove');
+       var songQueue = new SongQueue(songData1);
+       songQueue.at(0).dequeue();
+@@ -75,7 +75,7 @@ describe('SongQueue', function() {
+   });
+ 
+   describe('playFirst', function() {
+-    xit('plays the first song in the queue', function() {
++    it('plays the first song in the queue', function() {
+       sinon.spy(SongModel.prototype, 'play');
+       var songQueue = new SongQueue(songData1);
+       songQueue.playFirst();
+diff --git a/test/spec/SongQueueViewSpec.js b/test/spec/SongQueueViewSpec.js
+index 24a74ff..3e0bf65 100644
+--- a/test/spec/SongQueueViewSpec.js
++++ b/test/spec/SongQueueViewSpec.js
+@@ -16,14 +16,14 @@ describe('SongQueueView', function() {
+     ]);
+   });
+ 
+-  xit('creates SongQueueEntryViews for each queued song & renders them', function(){
++  it('creates SongQueueEntryViews for each queued song & renders them', function(){
+     sinon.spy(SongQueueEntryView.prototype, 'render');
+     view = new SongQueueView({collection: fakeSongs});
+     view.render();
+     expect(SongQueueEntryView.prototype.render).to.have.been.called;
+   });
+ 
+-  xit('renders when add or remove event fires from the song queue collection', function(){
++  it('renders when add or remove event fires from the song queue collection', function(){
+     sinon.spy(SongQueueView.prototype, 'render');
+     view = new SongQueueView({collection: fakeSongs});
+     view.collection.add({
+diff --git a/test/spec/SongSpec.js b/test/spec/SongSpec.js
+index 8929167..8f2d754 100644
+--- a/test/spec/SongSpec.js
++++ b/test/spec/SongSpec.js
+@@ -17,21 +17,21 @@ describe('SongModel', function() {
+     });
+   });
+ 
+-  xdescribe('enqueue', function() {
++  describe('enqueue', function() {
+     it('triggers an "enqueue" event', function() {
+       model.enqueue();
+       expect(model.trigger).to.have.been.calledWith('enqueue', model);
+     });
+   });
+ 
+-  xdescribe('dequeue', function() {
++  describe('dequeue', function() {
+     it('triggers a "dequeue" event', function() {
+       model.dequeue();
+       expect(model.trigger).to.have.been.calledWith('dequeue', model);
+     });
+   });
+ 
+-  xdescribe('ended', function() {
++  describe('ended', function() {
+     it('triggers an "ended" event', function() {
+       model.play();
+       model.ended();

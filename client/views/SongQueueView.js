@@ -6,8 +6,13 @@ var SongQueueView = Backbone.View.extend({
 
   initialize: function() {
     this.render();
-    this.collection.on('add', function(){
+    this.collection.on('add', function(song){
       this.render();
+      if (this.collection.length === 1) {
+        //this.collection.playFirst();  // if we call directly we will be blocked
+        song.play();
+      }
+
     },this);
   },
 
@@ -18,7 +23,7 @@ var SongQueueView = Backbone.View.extend({
 
     this.$el.html('<th>Queue</th>').append(
       this.collection.map(function(song){
-        return new LibraryEntryView({model: song}).render();
+        return new SongQueueEntryView({model: song}).render();
       })
     );
   },
