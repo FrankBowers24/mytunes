@@ -2,6 +2,10 @@
 var SongQueue = Songs.extend({
 
   initialize: function(){
+  },
+
+  enqueue: function(song){
+    this.push(song);
   }
 
 });
