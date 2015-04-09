@@ -1,0 +1,44 @@
+body {
+  text-align: center;
+  background-image: url(https://c2.staticflickr.com/6/5125/5325081211_be061bc3a1_z.jpg);
+  background-repeat: repeat-x repeat-y;
+}
+
+.container {
+  position: absolute;
+  top: 40%;
+  left:40%;
+  display: inline-block;
+  background-color: rgba(255,255,255,0.6);
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 6px 6px 20px #999;
+}
+
+table {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+th {
+  font-size: 22px;
+  align: center;
+}
+
+.artist {
+  color: #444;
+  text-transform: lowercase;
+}
+
+tr {
+  line-height: 20px;
+}
+
+tr:nth-child(odd) {
+  background-color: rgba(255, 254, 171, 0.6);
+}
+
+td {
+  padding: 5px;
+
+}
