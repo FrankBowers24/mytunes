@@ -19,7 +19,8 @@ var AppModel = Backbone.Model.extend({
 
     params.library.on('enqueue', function(song){
       // add song parameter to the SongQueue collection
-      this.set('songToBeEnqueued', song);
+      //this.set('songToBeEnqueued', song);
+      this.get('songQueue').add(song);
     }, this);
 
     params.library.on('dequeue', function(song){
