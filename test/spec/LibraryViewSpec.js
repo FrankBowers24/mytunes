@@ -15,6 +15,8 @@ describe("LibraryView", function() {
       }
     ];
     fakeSongs = new Songs(fakeSongData);
+    // the following line is a kludge
+    appView = new AppView({model: new AppModel({library: fakeSongs})});
   });
 
   it("should render its subviews when you render it", function(){

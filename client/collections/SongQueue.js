@@ -15,7 +15,9 @@ var SongQueue = Songs.extend({
   // NEW NEW
   playFirst: function() {
   	if (this.length >= 1) {
-     this.shift().play();  // was shift
+      this.at(0).play();
+     // this.shift().play();  // was shift
+     console.log("playFirst was called!");
     }
   }
 
