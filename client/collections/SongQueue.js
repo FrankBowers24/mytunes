@@ -24,6 +24,12 @@ var SongQueue = Songs.extend({
       this.dequeue(song);
       }
     });
+    var context = this;
+    setTimeout(function(context){
+      if(context.length > 0) {
+        context.playFirst();
+      }
+    },1000,context);
 
 
   },

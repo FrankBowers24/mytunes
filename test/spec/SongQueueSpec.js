@@ -26,6 +26,13 @@ describe('SongQueue', function() {
         songQueue.add(songData1);
         expect(playSpy).to.have.been.called;
       });
+
+      it('should have a play count', function() {
+        var songQueue = new SongQueue();
+        songQueue.add(songData1);
+        debugger;
+        expect(songQueue.at(0).get('playCount')).to.equal(1);
+      });
     });
 
     describe('when it is not the only song in the song queue', function() {

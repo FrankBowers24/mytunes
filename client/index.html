@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html>
-  <body>
+<body>
     <!-- Scripts may be placed anywhere on a page. But FYI, they block rendering of elements
-     below them until after the scripts load-->
+    below them until after the scripts load-->
     <link rel="stylesheet" href="style.css">
     <script src="bower_components/jquery/jquery.min.js"></script>
     <script src="bower_components/underscore/underscore.js"></script>
     <script src="bower_components/backbone/backbone.js"></script>
+    <script src="bower_components/backbone.localStorage/backbone.localStorage-min.js"></script>
 
     <script src="data/data.js"></script>
 
@@ -27,7 +28,13 @@
     <script>
       $(function(){
         // set up model objects
-        var library = new Songs(songData);
+        //
+        var localSongData;
+        if (localStorage['myTunesLibrary']) {
+          localSongData = localStorage['myTunesLibrary'];
+          localSongData = JSON.parse(localSongData);
+        }
+        var library = new Songs(localSongData || songData);
         var app = new AppModel({library: library});
 
         // build a view for the top level of the whole app
@@ -38,4 +45,4 @@
       });
     </script>
   </body>
-</html>
+  </html>

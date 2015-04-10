@@ -3,7 +3,14 @@ var AppModel = Backbone.Model.extend({
 
   initialize: function(params){
     this.set('currentSong', new SongModel());
-    this.set('songQueue', new SongQueue());
+
+    if(localStorage.myTunesQueue){
+      this.set('songQueue', new SongQueue(JSON.parse(localStorage.myTunesQueue)));
+    } else {
+      this.set('songQueue', new SongQueue());
+    }
+
+    localStorage['myTunesLibrary'] = JSON.stringify(params.library.toJSON());
 
     /* Note that 'this' is passed as the third argument. That third argument is
     the context. The 'play' handler will always be bound to that context we pass in.
@@ -12,10 +19,20 @@ var AppModel = Backbone.Model.extend({
     end up refering to the window. That's just what happens with all JS events. The handlers end up
     getting called from the window (unless we override it, as we do here). */
 
-
+    console.log("Setting up play listener");
     params.library.on('play', function(song){
       this.set('currentSong', song);
     }, this);
+
+    params.library.on('change', function() {
+      localStorage['myTunesLibrary'] = JSON.stringify(params.library.toJSON());
+      console.log("Detected library change.")
+    },this);
+
+    this.get('songQueue').on('add remove', function(){
+      localStorage['myTunesQueue'] = JSON.stringify(this.get('songQueue').toJSON());
+      console.log("Detected queue change.")
+    },this);
 
     params.library.on('enqueue', function(song){
       // add song parameter to the SongQueue collection
